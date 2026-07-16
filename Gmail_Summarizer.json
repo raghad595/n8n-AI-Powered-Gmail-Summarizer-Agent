@@ -1,0 +1,206 @@
+{
+  "name": "Gmail_Summarizer",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -288,
+        -128
+      ],
+      "id": "85ef66ec-b68f-4d92-8002-cbb580043b9e",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 5,
+        "filters": {
+          "readStatus": "unread"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -128,
+        -128
+      ],
+      "id": "e8da032c-71e7-4889-aabb-4e46814becd9",
+      "name": "Get many messages",
+      "webhookId": "930b3ca4-1470-4eba-a3b0-2b25b1b13542",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "FltmecL5x43B4Qae",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "snippet"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        16,
+        -128
+      ],
+      "id": "a806abf9-0bbd-43d7-b2cb-1595b8a85ac1",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a professional Executive Assistant. Your task is to summarize the following list of unread emails into a clear, concise report.\n\n### Input Data:\n{{ $json.snippet.join('\\n---\\n') }}\n\n### Instructions:\n1. Summarize each email into a single, well-structured paragraph.\n2. For each summary, start with a bold header: \"Subject/Context: [Brief Topic]\".\n3. Highlight any urgent deadlines or action items in bold.\n4. If multiple emails are related to the same topic, group them into one paragraph.\n5. Maintain a professional yet helpful tone.\n\n### Output Format:\nProvide only the summarized paragraphs separated by a line break. Do not include introductory or concluding remarks (e.g., \"Here is your summary\").",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        176,
+        -128
+      ],
+      "id": "cd507a48-f4c3-4cdc-83e7-574921e16fd3",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        16,
+        80
+      ],
+      "id": "59f876ef-7a06-4b00-8592-6289e409bfe8",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "56ixfgjzaJ59H3aP",
+          "name": "Google Gemini(PaLM) Api AI_Team"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "https://docs.google.com/document/d/1Th-pkgKBSIczk9X1FcSwN_pOGOEmk5k3Yz9Gc-ciT4M/edit?usp=sharing",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $json.output }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        496,
+        -128
+      ],
+      "id": "0ee94742-a9cd-4966-b0f1-d921187340e2",
+      "name": "Update a document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "TUpNAI9mtReBsWQY",
+          "name": "Google Docs AI_team"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get many messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many messages": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Update a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8313136d-b23e-461d-96fa-7bd159e56d68",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "630732af1935cbd61ce16267627985759dd14d24efdd8bb4891afbcd39eb47a1"
+  },
+  "nodeGroups": [],
+  "id": "BlXwRbEzztGkKgr8",
+  "tags": [
+    {
+      "updatedAt": "2025-09-03T09:27:51.536Z",
+      "createdAt": "2025-09-03T09:27:51.536Z",
+      "id": "0SxeJd80u5c8yGyf",
+      "name": "RAGHAD"
+    }
+  ]
+}
